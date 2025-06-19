@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔐 VaultLock | Military-Grade Encryption</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.1.1/crypto-js.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        /* === Glassmorphism Design === */
+        :root {
+            --primary: hsl(220, 89%, 60%);
+            --primary-dark: hsl(220, 89%, 50%);
+            --text: hsl(220, 20%, 20%);
+            --bg: hsl(0, 0%, 95%);
+            --card: hsla(0, 0%, 100%, 0.8);
+            --success: hsl(193, 85%, 60%);
+            --error: hsl(340, 90%, 60%);
+            --glass-blur: 12px;
+            --glass-border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        [data-theme="dark"] {
+            --primary: hsl(210, 90%, 60%);
+            --text: hsl(0, 0%, 95%);
+            --bg: hsl(220, 15%, 16%);
+            --card: hsla(220, 15%, 20%, 0.7);
+        }
+
+        /* === Base Styles === */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: 
+                background 0.4s ease,
+                color 0.2s ease,
+                transform 0.2s ease;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 2rem;
+            background-image: 
+                radial-gradient(at 80% 20%, hsla(220, 60%, 60%, 0.1) 0px, transparent 50%),
+                radial-gradient(at 20% 80%, hsla(340, 60%, 60%, 0.1) 0px, transparent 50%);
+            overflow-x: hidden;
+        }
+
+        /* === 3D Card Effect === */
+        .card {
+            background: var(--card);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.1),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+            border: var(--glass-border);
+            transform-style: preserve-3d;
+            transform: perspective(1000px);
+            transition: transform 0.5s ease, box-shadow 0.5s ease;
+        }
+
+        .card:hover {
+            transform: perspective(1000px) translateY(-5px) rotateX(1deg);
+            box-shadow: 
+                0 12px 40px rgba(0, 0, 0, 0.15),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.15);
+        }
+
+        /* === Animated Header === */
+        .header {
+            background: linear-gradient(135deg, var(--primary), hsl(280, 60%, 50%));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            text-align: center;
+            animation: gradientShift 8s ease infinite;
+            background-size: 200% 200%;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* === Interactive Elements === */
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            color: var(--text);
+            font-size: 1rem;
+            resize: vertical;
+            margin: 1rem 0;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: 2px solid var(--primary);
+            box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.2);
+        }
+
+        /* === Tactile Buttons === */
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border-radius: 0.8rem;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(255, 255, 255, 0.2), transparent);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .btn:hover::after {
+            opacity: 1;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+        }
+
+        /* === Cipher Wheel === */
+        .cipher-wheel {
+            width: 200px;
+            height: 200px;
+            margin: 2rem auto;
+            position: relative;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 0deg,
+                #f72585, #b5179e, #7209b7, #560bad,
+                #480ca8, #3a0ca3, #3f37c9, #4361ee,
+                #4895ef, #4cc9f0
+            );
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            animation: rotateWheel 30s linear infinite;
+            transform-style: preserve-3d;
+        }
+
+        @keyframes rotateWheel {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* === Responsive Grid === */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        /* === Toast Notifications === */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            border-radius: 0.8rem;
+            background: var(--card);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* === Mobile Optimization === */
+        @media (max-width: 768px) {
+            .header {
+                font-size: 2rem;
+            }
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            .cipher-wheel {
+                width: 150px;
+                height: 150px;
+            }
+        }
+
+        /* === Custom Scrollbar === */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-dark);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="header">VaultLock</h1>
+        <p class="subtitle">Military-grade encryption in your browser</p>
+
+        <div class="grid">
+            <!-- Encryption Card -->
+            <div class="card">
+                <h2><i class="fas fa-lock"></i> Encrypt Message</h2>
+                <textarea id="textToEncrypt" placeholder="Type your secret message..." autofocus></textarea>
+                
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="encryptBtn">
+                        <i class="fas fa-key"></i> Encrypt
+                    </button>
+                    <button class="btn btn-secondary" id="copyEncrypted">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                    <button class="btn btn-error" id="clearEncrypt">
+                        <i class="fas fa-trash"></i> Clear
+                    </button>
+                </div>
+
+                <textarea id="encryptedResult" placeholder="Encrypted result will appear here" readonly></textarea>
+            </div>
+
+            <!-- Decryption Card -->
+            <div class="card">
+                <h2><i class="fas fa-lock-open"></i> Decrypt Message</h2>
+                <textarea id="textToDecrypt" placeholder="Paste encrypted message"></textarea>
+                
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="decryptBtn">
+                        <i class="fas fa-key"></i> Decrypt
+                    </button>
+                    <button class="btn btn-secondary" id="copyDecrypted">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                    <button class="btn btn-error" id="clearDecrypt">
+                        <i class="fas fa-trash"></i> Clear
+                    </button>
+                </div>
+
+                <textarea id="decryptedResult" placeholder="Decrypted result will appear here" readonly></textarea>
+            </div>
+        </div>
+
+        <!-- Cipher Tools -->
+        <div class="card">
+            <h2><i class="fas fa-tools"></i> Cipher Tools</h2>
+            
+            <div class="cipher-wheel"></div>
+            
+            <div class="btn-group">
+                <button class="btn" id="generateQR">
+                    <i class="fas fa-qrcode"></i> Generate QR Code
+                </button>
+                <button class="btn" id="exportTxt">
+                    <i class="fas fa-file-export"></i> Export as .TXT
+                </button>
+                <button class="btn" id="biometricLock">
+                    <i class="fas fa-fingerprint"></i> Biometric Lock
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ====== Core Encryption Logic ======
+        const substitutionCipher = {
+            // Your custom cipher mapping
+            encryptMap: {
+                'a': 'f', 'b': 'g', 'c': 'h', 'd': 'i', 'e': 'j',
+                'f': 'k', 'g': 'l', 'h': 'm', 'i': 'n', 'j': 'o',
+                'k': 'p', 'l': 'q', 'm': 'r', 'n': 's', 'o': 't',
+                'p': 'u', 'q': 'v', 'r': 'w', 's': 'x', 't': 'y',
+                'u': 'z', 'v': 'a', 'w': 'b', 'x': 'c', 'y': 'd',
+                'z': 'e',
+                'A': 'F', 'B': 'G', 'C': 'H', 'D': 'I', 'E': 'J',
+                'F': 'K', 'G': 'L', 'H': 'M', 'I': 'N', 'J': 'O',
+                'K': 'P', 'L': 'Q', 'M': 'R', 'N': 'S', 'O': 'T',
+                'P': 'U', 'Q': 'V', 'R': 'W', 'S': 'X', 'T': 'Y',
+                'U': 'Z', 'V': 'A', 'W': 'B', 'X': 'C', 'Y': 'D',
+                'Z': 'E'
+            },
+
+            // Create reverse mapping
+            decryptMap: {},
+
+            init() {
+                // Generate decrypt map
+                for (const key in this.encryptMap) {
+                    this.decryptMap[this.encryptMap[key]] = key;
+                }
+            },
+
+            encrypt(text) {
+                let result = '';
+                for (let i = 0; i < text.length; i++) {
+                    const char = text[i];
+                    result += this.encryptMap[char] || char;
+                }
+                return result;
+            },
+
+            decrypt(text) {
+                let result = '';
+                for (let i = 0; i < text.length; i++) {
+                    const char = text[i];
+                    result += this.decryptMap[char] || char;
+                }
+                return result;
+            }
+        };
+
+        // Initialize cipher
+        substitutionCipher.init();
+
+        // ====== AES-256 Encryption Layer ======
+        function aesEncrypt(text, password) {
+            try {
+                const salt = CryptoJS.lib.WordArray.random(128/8);
+                const key = CryptoJS.PBKDF2(password, salt, {
+                    keySize: 256/32,
+                    iterations: 1000
+                });
+                const iv = CryptoJS.lib.WordArray.random(128/8);
+                const encrypted = CryptoJS.AES.encrypt(text, key, { 
+                    iv: iv,
+                    padding: CryptoJS.pad.Pkcs7,
+                    mode: CryptoJS.mode.CBC
+                });
+                return salt.toString() + iv.toString() + encrypted.toString();
+            } catch (e) {
+                console.error("AES Encryption Error:", e);
+                return null;
+            }
+        }
+
+        function aesDecrypt(ciphertext, password) {
+            try {
+                const salt = CryptoJS.enc.Hex.parse(ciphertext.substr(0, 32));
+                const iv = CryptoJS.enc.Hex.parse(ciphertext.substr(32, 32));
+                const encrypted = ciphertext.substring(64);
+                const key = CryptoJS.PBKDF2(password, salt, {
+                    keySize: 256/32,
+                    iterations: 1000
+                });
+                const decrypted = CryptoJS.AES.decrypt(encrypted, key, { 
+                    iv: iv,
+                    padding: CryptoJS.pad.Pkcs7,
+                    mode: CryptoJS.mode.CBC
+                });
+                return decrypted.toString(CryptoJS.enc.Utf8);
+            } catch (e) {
+                console.error("AES Decryption Error:", e);
+                return null;
+            }
+        }
+
+        // ====== UI Functions ======
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 
+                                  type === 'error' ? 'times-circle' : 
+                                  'info-circle'}"></i>
+                ${message}
+            `;
+            toast.className = 'toast show ' + type;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function triggerConfetti() {
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#4361ee', '#3a0ca3', '#7209b7', '#f72585']
+            });
+        }
+
+        // ====== Event Listeners ======
+        document.getElementById('encryptBtn').addEventListener('click', () => {
+            const message = document.getElementById('textToEncrypt').value;
+            if (!message) {
+                showToast('Please enter a message to encrypt', 'error');
+                return;
+            }
+            
+            // First apply substitution cipher
+            const substituted = substitutionCipher.encrypt(message);
+            
+            // Then apply AES encryption (demo - in real use, prompt for password)
+            const encrypted = aesEncrypt(substituted, 'user-secret-password');
+            
+            document.getElementById('encryptedResult').value = encrypted;
+            showToast('Message encrypted successfully!', 'success');
+        });
+
+        document.getElementById('decryptBtn').addEventListener('click', () => {
+            const message = document.getElementById('textToDecrypt').value;
+            if (!message) {
+                showToast('Please enter a message to decrypt', 'error');
+                return;
+            }
+            
+            try {
+                // First decrypt AES layer
+                const aesDecrypted = aesDecrypt(message, 'user-secret-password');
+                if (!aesDecrypted) {
+                    showToast('Decryption failed - wrong password?', 'error');
+                    return;
+                }
+                
+                // Then reverse substitution cipher
+                const finalResult = substitutionCipher.decrypt(aesDecrypted);
+                
+                document.getElementById('decryptedResult').value = finalResult;
+                showToast('Message decrypted successfully!', 'success');
+                triggerConfetti();
+            } catch (e) {
+                showToast('Decryption failed', 'error');
+            }
+        });
+
+        // ====== Feature Implementations ======
+        // QR Code Generation
+        document.getElementById('generateQR').addEventListener('click', () => {
+            const text = document.getElementById('encryptedResult').value || 
+                         document.getElementById('textToDecrypt').value;
+            
+            if (!text) {
+                showToast('No text to generate QR code', 'error');
+                return;
+            }
+            
+            const qr = new QRious({
+                value: text,
+                size: 200,
+                level: 'H'
+            });
+            
+            const newWindow = window.open();
+            newWindow.document.write('<img src="' + qr.toDataURL() + '">');
+            newWindow.document.close();
+        });
+
+        // Biometric Auth (simplified)
+        document.getElementById('biometricLock').addEventListener('click', async () => {
+            if (!window.PublicKeyCredential) {
+                showToast('Biometric auth not supported', 'error');
+                return;
+            }
+            
+            try {
+                const credential = await navigator.credentials.get({
+                    publicKey: {
+                        challenge: new Uint8Array(32),
+                        allowCredentials: []
+                    }
+                });
+                showToast('Biometric authentication successful!', 'success');
+            } catch (e) {
+                showToast('Biometric auth failed', 'error');
+            }
+        });
+
+        // ====== Theme Toggle ======
+        function detectColorScheme() {
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+        }
+
+        window.matchMedia('(prefers-color-scheme: dark)').addListener(detectColorScheme);
+        detectColorScheme();
+
+        // ====== Initialize ======
+        document.addEventListener('DOMContentLoaded', () => {
+            showToast('VaultLock ready for secure messaging', 'success');
+        });
+    </script>
+</body>
+</html>
